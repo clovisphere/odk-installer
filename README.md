@@ -69,7 +69,7 @@ The installation uses environment-specific `.env` files for configuration:
 
 ## Next Steps (AWS Deployment)
 
-This repository also lays the groundwork for automating deployment to an AWS server. Once you have tested the local installation, we can explore setting up a CI/CD workflow using GitHub Actions to automatically deploy changes to your AWS development server.
+> Not yet implemented.
 
 ## Contributing
 
