@@ -63,7 +63,6 @@ if [[ "$ENVIRONMENT" == "local" && "$OSTYPE" == "darwin"* ]]; then
 
     echo "Updating transfer volume path to: $TRANSFER_DIR"
     sed -i '' "s|/data/transfer:/data/transfer|${TRANSFER_DIR}:/data/transfer|g" docker-compose.override.yml
-    rm -f docker-compose.override.yml.bak
 
     echo "Starting ODK Central with override compose file..."
     COMPOSE_BAKE=true docker compose -f docker-compose.override.yml build
