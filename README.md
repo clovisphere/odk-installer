@@ -2,7 +2,7 @@
 
 [![Development Deployment Status](https://img.shields.io/github/actions/workflow/status/clovisphere/odk-installer/deploy.yml?branch=development&label=Development%20Deploy)](https://github.com/clovisphere/odk-installer/actions?query=workflow%3ADeploy%20ODK%20Central+branch%3Adevelopment) [![Production Deployment Status](https://img.shields.io/github/actions/workflow/status/clovisphere/odk-installer/deploy.yml?branch=main&label=Production%20Deploy)](https://github.com/clovisphere/odk-installer/actions?query=workflow%3ADeploy%20ODK%20Central+branch%3Amain)
 
-This repository contains scripts to automate the local installation of [ODK Central](https://github.com/getodk/central) using Docker Compose.
+Scripts in this repository automate the installation process for [ODK Central](https://github.com/getodk/central).
 
 ## Prerequisites ⚙️
 
