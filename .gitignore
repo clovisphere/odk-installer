@@ -1,0 +1,37 @@
+# ODK Central Installer .gitignore
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Environment config
+.env.*
+!.env.sample
+
+# ODK Central
+central/
+
+# IntelliJ
+.idea/
+
+# VSCode
+.vscode/
+
+# Temporary files
+*~
+#*
+.swp
+.swo
+.tmp
+.bak
+.cache
+*.pid
+
+# Security credentials
+id_rsa
+id_rsa.pub
+*.key
+*.cert
+*.pem
+*.p12
+*.pfx
