@@ -67,6 +67,10 @@ The installation uses environment-specific `.env` files for configuration:
 
 **Before running the installation, review and modify these `.env` files to match your desired settings.** You can duplicate `.env.sample` to create these environment-specific files.
 
+## Known Issues
+
+- On MacOS or/and Windows, you may encounter an issue related to `mount` permissions. To resolve this, follow the instructions provided [here](https://github.com/getodk/central#services).
+
 ## Next Steps (AWS Deployment)
 
 > Not yet implemented.
