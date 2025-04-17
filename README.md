@@ -1,4 +1,4 @@
-# ODK Central Local Installation Automation
+# ODK Central Automated Setup
 
 This repository contains scripts to automate the local installation of [ODK Central](https://github.com/getodk/central) using Docker Compose.
 
@@ -73,8 +73,8 @@ This repository also lays the groundwork for automating deployment to an AWS ser
 
 ## Contributing
 
-[Add your contribution guidelines here if you plan to collaborate.]
+Feel free to fork this project and/or submit pull requests. Contributions are welcome!
 
 ## License
 
-[Add your license information here.]
+This project is open-source and licensed under the [MIT License](./LICENSE).
