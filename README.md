@@ -59,6 +59,32 @@ Before running the installation script, ensure you have the following installed 
     ODK_VERSION=v2024.3.2 make local
     ```
 
+## Post-Installation Setup (Manual Steps)
+
+After ODK Central starts successfully, you will need to perform the following steps manually, either directly on the server where ODK Central is deployed or locally if you have the necessary Docker environment configured:
+
+1.  **Create a New User Account:**
+
+    Run the following command to create the initial user account. **Remember to replace `YOUREMAIL@ADDRESSHERE.com` with your desired email address:**
+
+    ```bash
+    docker compose exec service odk-cmd --email YOUREMAIL@ADDRESSHERE.com user-create
+    ```
+
+2.  **Promote the User to Admin:**
+
+    To grant the newly created user administrative privileges, execute this command, again **replacing `YOUREMAIL@ADDRESSHERE.com` with the email address of the user you just created:**
+
+    ```bash
+    docker compose exec service odk-cmd --email YOUREMAIL@ADDRESSHERE.com user-promote
+    ```
+
+**Important Notes:**
+
+* These commands utilize `docker compose exec` to run commands within the ODK Central service container. Therefore, you need to have Docker Compose installed and be in the directory containing your `docker-compose.yml` file (or have it accessible in your system's PATH) to execute them successfully.
+* If you are performing these steps on a remote server, you will typically need to SSH into the server first.
+* Ensure that the ODK Central containers are running before attempting to create a user or promote them to admin. You can check the status of the containers using `docker compose ps`.
+
 ## Configuration 🛠️
 
 The installation uses environment-specific `.env` files for configuration:
