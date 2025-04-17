@@ -1,0 +1,84 @@
+name: Deploy ODK Central
+
+on:
+  push:
+    branches:
+      - "development"
+      - "main"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to development server
+        if: github.ref == 'refs/heads/development' && vars.CAN_DEPLOY_DEV == 'True'
+        uses: appleboy/ssh-action@master
+        timeout-minutes: 120
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_PRIVATE_KEY }} # Use SSH private key
+          port: ${{ secrets.DEV_PORT }}
+          timeout: 120m
+          command_timeout: 120m
+          script: |
+            cd ~/odk-installer           # Assuming your ODK installer script is in this directory
+            git pull origin development  # Pull the latest changes from the development branch
+            rm .env.dev                  # Remove .env.dev file if it exists
+
+            # Removing installation directory: ./central if it exists
+            make clear
+
+            # Create .env.dev dynamically
+            echo "# Use fully qualified domain names. Set to DOMAIN=local if SSL_TYPE=selfsign." > .env.dev
+            echo "DOMAIN=${{ secrets.ODK_DEV_DOMAIN }}" >> .env.dev
+            echo "" >> .env.dev
+            echo "# Used for Let's Encrypt expiration emails and Enketo technical support emails" >> .env.dev
+            echo "SYSADMIN_EMAIL=${{ secrets.ODK_DEV_SYSADMIN_EMAIL }}" >> .env.dev
+            echo "" >> .env.dev
+            echo "# Options: letsencrypt, customssl, upstream, selfsign" >> .env.dev
+            echo "SSL_TYPE=${{ secrets.ODK_DEV_SSL_TYPE }}" >> .env.dev
+            echo "" >> .env.dev
+            echo "# Do not change if using SSL_TYPE=selfsign" >> .env.dev
+            echo "HTTP_PORT=${{ vars.ODK_DEV_HTTP_PORT }}" >> .env.dev
+            echo "HTTPS_PORT=${{ vars.ODK_DEV_HTTPS_PORT }}" >> .env.dev
+
+            # Execute your installation script for the 'dev' environment
+            ENV_FILE=.env.dev make dev
+
+      - name: Deploy to production server
+        if: github.ref == 'refs/heads/main' && vars.CAN_DEPLOY_PROD == 'True'
+        uses: appleboy/ssh-action@master
+        timeout-minutes: 120
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_PRIVATE_KEY }} # Use SSH private key
+          port: ${{ secrets.PROD_PORT }}
+          timeout: 120m
+          command_timeout: 120m
+          script: |
+            cd ~/odk-installer     # Assuming your ODK installer script is in this directory
+            git pull origin main   # Pull the latest changes from the development branch
+            rm .env.prod           # Remove .env.prod file if it exists
+
+            # Removing installation directory: ./central if it exists
+            make clear
+
+            # Assuming you have a .env.prod file on the server or will create it dynamically
+            echo "# Use fully qualified domain names. Set to DOMAIN=local if SSL_TYPE=selfsign." > .env.prod
+            echo "DOMAIN=${{ secrets.ODK_PROD_DOMAIN }}" >> .env.prod
+            echo "" >> .env.prod
+            echo "# Used for Let's Encrypt expiration emails and Enketo technical support emails" >> .env.prod
+            echo "SYSADMIN_EMAIL=${{ secrets.ODK_PROD_SYSADMIN_EMAIL }}" >> .env.prod
+            echo "" >> .env.prod
+            echo "# Options: letsencrypt, customssl, upstream, selfsign" >> .env.prod
+            echo "SSL_TYPE=${{ secrets.ODK_PROD_SSL_TYPE }}" >> .env.prod
+            echo "" >> .env.prod
+            echo "# Do not change if using SSL_TYPE=selfsign" >> .env.prod
+            echo "HTTP_PORT=${{ vars.ODK_PROD_HTTP_PORT }}" >> .env.prod
+            echo "HTTPS_PORT=${{ vars.ODK_PROD_HTTPS_PORT }}" >> .env.prod
+
+            # Execute your installation script for the 'prod' environment
+            ENV_FILE=.env.prod make prod
