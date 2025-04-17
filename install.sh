@@ -10,10 +10,6 @@ TRANSFER_DIR="$4"
 
 echo "Installing ODK Central for environment: $ENVIRONMENT, version: $ODK_VERSION"
 
-# --- Ensure the Transfer Directory Exists ---
-echo "Ensuring the transfer directory exists: $TRANSFER_DIR"
-mkdir -p "$TRANSFER_DIR"
-
 # --- Prerequisites Check ---
 command -v docker &> /dev/null || {
     echo "Error: Docker is not installed. Install it: https://docs.docker.com/engine/install/"
@@ -57,6 +53,10 @@ fi
 
 # --- Create Override Compose File for Local Environment on macOS ---
 if [[ "$ENVIRONMENT" == "local" && "$OSTYPE" == "darwin"* ]]; then
+    # --- Ensure the Transfer Directory Exists ---
+    echo "Ensuring the transfer directory exists: $TRANSFER_DIR"
+    mkdir -p "$TRANSFER_DIR"
+
     echo "Creating docker-compose.override.yml with dynamic transfer volume (macOS only)..."
 
     cp docker-compose.yml docker-compose.override.yml
