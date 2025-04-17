@@ -1,7 +1,8 @@
 # Makefile for ODK Central installation
 
-ODK_VERSION ?= v2024.3.2
-ENV_FILE    ?= .env.local
+ODK_VERSION  ?= v2024.3.2
+ENV_FILE     ?= .env.local
+TRANSFER_DIR ?= /tmp/odk-transfer
 
 .PHONY: all local dev prod stop clear
 
@@ -9,15 +10,15 @@ all: local # Default target is local install
 
 local:
 	@echo "Installing ODK Central locally (version: $(ODK_VERSION))..."
-	@./install.sh local $(ODK_VERSION) $(ENV_FILE)
+	@./install.sh local $(ODK_VERSION) $(ENV_FILE) $(TRANSFER_DIR)
 
 dev:
 	@echo "Installing ODK Central for development (version: $(ODK_VERSION))..."
-	@./install.sh dev $(ODK_VERSION) $(ENV_FILE)
+	@./install.sh dev $(ODK_VERSION) $(ENV_FILE) $(TRANSFER_DIR)
 
 prod:
 	@echo "Installing ODK Central for production (version: $(ODK_VERSION))..."
-	@./install.sh prod $(ODK_VERSION) $(ENV_FILE)
+	@./install.sh prod $(ODK_VERSION) $(ENV_FILE) $(TRANSFER_DIR)
 
 stop:
 	@echo "Stopping ODK Central (all environments)..."
