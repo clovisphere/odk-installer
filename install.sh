@@ -1,58 +1,49 @@
 #!/bin/bash
 
+set -e  # Exit immediately if a command exits with a non-zero status
+
+# --- Parse Arguments ---
 ENVIRONMENT="$1"
 ODK_VERSION="$2"
 ENV_FILE="$3"
+TRANSFER_DIR="$4"
 
 echo "Installing ODK Central for environment: $ENVIRONMENT, version: $ODK_VERSION"
 
 # --- Prerequisites Check ---
-if ! command -v docker &> /dev/null; then
-    echo "Error: Docker is not installed. Please install Docker Engine."
-    echo "Follow the instructions here: https://docs.docker.com/engine/install/"
+command -v docker &> /dev/null || {
+    echo "Error: Docker is not installed. Install it: https://docs.docker.com/engine/install/"
     exit 1
-fi
-if ! command -v docker-compose &> /dev/null; then
-    echo "Error: Docker Compose is not installed. Please install Docker Compose."
-    echo "Follow the instructions here: https://docs.docker.com/compose/install/"
-    exit 1
-fi
+}
 
-# --- Download/Update ODK Central ---
+command -v docker-compose &> /dev/null || {
+    echo "Error: Docker Compose is not installed. Install it: https://docs.docker.com/compose/install/"
+    exit 1
+}
+
+# --- Download or Update ODK Central ---
 if [ ! -d "./central" ]; then
     echo "Cloning ODK Central repository (version: $ODK_VERSION)..."
     git clone --depth 1 --branch "$ODK_VERSION" https://github.com/getodk/central central
-    if [ $? -ne 0 ]; then
-        echo "Error: Failed to clone the ODK Central repository."
-        exit 1
-    fi
 else
-    echo "ODK Central repository already exists. Pulling latest changes (version: $ODK_VERSION)..."
-    cd central
+    echo "ODK Central directory already exists. Updating to version: $ODK_VERSION..."
+    pushd central > /dev/null
     git fetch origin
-    git checkout "$ODK_VERSION" # Ensure we are on the correct branch
+    git checkout "$ODK_VERSION"
     git pull origin "$ODK_VERSION"
-    if [ $? -ne 0 ]; then
-        echo "Error: Failed to pull the latest changes."
-        exit 1
-    fi
-    cd .. # Go back to the original directory
+    popd > /dev/null
 fi
 
 # --- Environment Configuration ---
-echo "Copying environment file: $ENV_FILE to ./central/.env"
+echo "Copying environment file to ./central/.env"
 cp "$ENV_FILE" ./central/.env
 
-# --- Change Directory ---
-cd central || exit 1
+# --- Change to central directory ---
+cd central
 
 # --- Update submodules ---
 echo "Updating submodules..."
 git submodule update --init --recursive
-if [ $? -ne 0 ]; then
-    echo "Error: Failed to update submodules."
-    exit 1
-fi
 
 # --- Allow PostgreSQL Upgrade for Local/Dev ---
 if [[ "$ENVIRONMENT" == "local" || "$ENVIRONMENT" == "dev" ]]; then
@@ -60,24 +51,34 @@ if [[ "$ENVIRONMENT" == "local" || "$ENVIRONMENT" == "dev" ]]; then
     touch ./files/allow-postgres14-upgrade
 fi
 
-# --- Start ODK Central ---
-echo "Starting ODK Central using Docker Compose (environment: $ENVIRONMENT)..."
-# Build and start ODK Central using Docker Compose
-COMPOSE_BAKE=true docker compose build && COMPOSE_BAKE=true docker compose up -d
+# --- Create Override Compose File for Local Environment on macOS ---
+if [[ "$ENVIRONMENT" == "local" && "$OSTYPE" == "darwin"* ]]; then
+    echo "Creating docker-compose.override.yml with dynamic transfer volume (macOS only)..."
 
-if [ $? -ne 0 ]; then
-    echo "Error: Failed to start ODK Central. Check the Docker logs."
-    echo "To view the logs: docker compose logs"
-    exit 1
+    cp docker-compose.yml docker-compose.override.yml
+
+    echo "Updating transfer volume path to: $TRANSFER_DIR"
+    sed -i '' "s|/data/transfer:/data/transfer|${TRANSFER_DIR}:/data/transfer|g" docker-compose.override.yml
+    rm -f docker-compose.override.yml.bak
+
+    echo "Starting ODK Central with override compose file..."
+    COMPOSE_BAKE=true docker compose -f docker-compose.override.yml build
+    COMPOSE_BAKE=true docker compose -f docker-compose.override.yml up -d
+else
+    echo "Starting ODK Central with default docker-compose.yml..."
+    COMPOSE_BAKE=true docker compose build
+    COMPOSE_BAKE=true docker compose up -d
 fi
 
+# --- Post-Startup Info ---
 echo ""
-echo "ODK Central ($ENVIRONMENT) started successfully!"
-echo "You can access ODK Central by opening your web browser and navigating to http://localhost (or configured domain/port)."
-echo "To create a new account. Make sure to substitute the email address that you want to use for this account:"
+echo "✅ ODK Central ($ENVIRONMENT) started successfully!"
+echo "Access it at: http://localhost (or configured domain/port)"
+echo ""
+echo "➡ To create a new user account, run:"
 echo "docker compose exec service odk-cmd --email YOUREMAIL@ADDRESSHERE.com user-create"
-echo "Press Enter, and you will be asked for a password for this new account."
-echo "To make the new account an admin, run:"
+echo ""
+echo "➡ To promote that account to admin:"
 echo "docker compose exec service odk-cmd --email YOUREMAIL@ADDRESSHERE.com user-promote"
 echo ""
 
